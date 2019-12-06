@@ -19,17 +19,8 @@ export default class App extends Component {
                                 <div className="ht-main-menu">
                                     <nav>
                                         <ul>
-                                            <li className="active"><a href="index.html">home <i className="fa fa-angle-down"></i></a>
-                                                <ul>
-                                                    <li><a href="index.html">Home One</a></li>
-                                                    <li><a href="index-2.html">Home Two</a></li>
-                                                    <li><a href="index-3.html">Home Three</a></li>
-                                                    <li><a href="index-4.html">Home Four</a></li>
-                                                    <li><a href="index-5.html">Home Five</a></li>
-                                                    <li><a href="index-6.html">Home Six</a></li>
-                                                </ul>
-                                            </li>
-                                            <li><a href="shop.html">vegetables <i className="fa fa-angle-down"></i></a>
+                                            <li className="active"><a href="index.html">home</a></li>
+                                            <li><a href="shop.html">Discover<i className="fa fa-angle-down"></i></a>
                                                 <ul className="ht-mega-menu">
                                                     <li>
                                                         <ul>

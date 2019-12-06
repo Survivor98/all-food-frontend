@@ -16,11 +16,11 @@ import Preference from './modules/Preference'
 render((
     <Router history={hashHistory}>
         <Route path="/" component={App}>
-            {/*<Route path="/repos" component={Repos}>
+            <Route path="/repos" component={Repos}>
                 <Route path="/repos/:userName/:repoName" component={Repo}/>
-            </Route>*/}
+            </Route>
             {/* add the new route */}
-            {/*<Route path="/about" component={About}/>*/}
+            <Route path="/about" component={About}/>
             <IndexRoute component={Home}/>
             {/*<Route path="/Discover" component={Discover}/>
             <Route path="/Recipe" component={Recipe}/>
