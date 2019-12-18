@@ -1,28 +1,39 @@
 import React from 'react'
 import { render } from 'react-dom'
-import { Router, Route, hashHistory, IndexRoute } from 'react-router'
+import { Router, Route, browserHistory, hashHistory, IndexRoute } from 'react-router'
+
 
 import App from './modules/App'
-import About from './modules/About'
-import Repos from './modules/Repos'
-import Repo from './modules/Repo'
+// import About from './modules/About'
+// import Repos from './modules/Repos'
+// import Repo from './modules/Repo'
 import Home from './modules/Home'
-import Discover from './modules/Discover'
-import Recipe from './modules/Recipe'
+import Dishes from './modules/Dishes'
 import Menu from './modules/Menu'
-import Nutrition from './modules/Nutrition'
-import Preference from './modules/Preference'
+import Health from './modules/Health'
+import MySpace from './modules/MySpace'
+// import Recipe from './modules/Recipe'
+// import Menu from './modules/Menu'
+// import Nutrition from './modules/Nutrition'
+// import Preference from './modules/Preference'
+
 
 render((
-    <Router history={hashHistory}>
+    /*<Router history={browserHistory} forceRefresh={true}>*/
+    <Router history={hashHistory} forceRefresh={true}>
         <Route path="/" component={App}>
+            {/* add the new route */}
+            <IndexRoute component={Home}/>}/>
+            <Route path="/Dishes" component={Dishes}/>
+            <Route path="/Dishes/:type/:option" component={Dishes}/>
+            <Route path="/Menu" component={Menu}/>
+            <Route path="/Health" component={Health}/>
+            <Route path="/MySpace" component={MySpace}/>
+            {/*
             <Route path="/repos" component={Repos}>
                 <Route path="/repos/:userName/:repoName" component={Repo}/>
             </Route>
-            {/* add the new route */}
             <Route path="/about" component={About}/>
-            <IndexRoute component={Home}/>
-            {/*<Route path="/Discover" component={Discover}/>
             <Route path="/Recipe" component={Recipe}/>
             <Route path="/Menu" component={Menu}/>
             <Route path="/Nutrition" component={Nutrition}/>

@@ -50,46 +50,50 @@
 /*-------------------------------------
     Hero Slider
 ----------------------------------------*/
-    var heroSlider = $('.ht-hero-slider');
-    heroSlider.slick({
-        arrows: true,
-        prevArrow:"<button type='button' class='slick-prev'><i class='fa fa-angle-left'></i></button>",
-        nextArrow:"<button type='button' class='slick-next'><i class='fa fa-angle-right'></i></button>",
-        autoplay: true,
-        autoplaySpeed: 50000,
-        dots: true,
-        pauseOnFocus: false,
-        pauseOnHover: false,
-        fade: true,
-        infinite: true,
-        slidesToShow: 1,
-        responsive: [
-            {
-              breakpoint: 767,
-              settings: {
-                  arrows: false
-              }
-            },
-            {
-                breakpoint: 479,
-                settings: {
-                    arrows: false
+    if(document.getElementById('ht-hero-slider')){
+        var heroSlider = $('.ht-hero-slider');
+        heroSlider.slick({
+            arrows: true,
+            prevArrow:"<button type='button' class='slick-prev'><i class='fa fa-angle-left'></i></button>",
+            nextArrow:"<button type='button' class='slick-next'><i class='fa fa-angle-right'></i></button>",
+            autoplay: true,
+            autoplaySpeed: 50000,
+            dots: true,
+            pauseOnFocus: false,
+            pauseOnHover: false,
+            fade: true,
+            infinite: true,
+            slidesToShow: 1,
+            responsive: [
+                {
+                    breakpoint: 767,
+                    settings: {
+                        arrows: false
+                    }
+                },
+                {
+                    breakpoint: 479,
+                    settings: {
+                        arrows: false
+                    }
                 }
-            }
-        ]
-    });
-    heroSlider.on('beforeChange', function(event, slick, currentSlide, nextSlide){
-        var sliderTitle = $('.ht-hero-slider h1');
-        var currentTitle = $('.slick-current h1');
-        sliderTitle.removeClass('cssanimation leDoorCloseLeft sequence');
-        currentTitle.addClass('cssanimation leDoorCloseLeft sequence');
-    });
-    heroSlider.on('afterChange', function(event, slick, currentSlide, nextSlide){
-        var sliderTitle = $('.ht-hero-slider h1');
-        var currentTitle = $('.slick-current h1');
-        sliderTitle.removeClass('cssanimation leDoorCloseLeft sequence');
-        currentTitle.addClass('cssanimation leDoorCloseLeft sequence');
-    });
+            ]
+        });
+        heroSlider.on('beforeChange', function(event, slick, currentSlide, nextSlide){
+            var sliderTitle = $('.ht-hero-slider h1');
+            var currentTitle = $('.slick-current h1');
+            sliderTitle.removeClass('cssanimation leDoorCloseLeft sequence');
+            currentTitle.addClass('cssanimation leDoorCloseLeft sequence');
+        });
+        heroSlider.on('afterChange', function(event, slick, currentSlide, nextSlide){
+            var sliderTitle = $('.ht-hero-slider h1');
+            var currentTitle = $('.slick-current h1');
+            sliderTitle.removeClass('cssanimation leDoorCloseLeft sequence');
+            currentTitle.addClass('cssanimation leDoorCloseLeft sequence');
+        });
+    } else {
+        console.log('cannot get dom.')
+    }
     
 /*------------------------------------
     Food Category Slider
