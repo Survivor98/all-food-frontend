@@ -23,6 +23,7 @@ export default class Home extends Component {
         this.handleQuitDetail = this.handleQuitDetail.bind(this);
         this.getRecommendDishes = this.getRecommendDishes.bind(this);
         this.handleShowRecommendDetail = this.handleShowRecommendDetail.bind(this);
+        this.addRecommendtoFavourite = this.addRecommendtoFavourite.bind(this);
 
     }
 
@@ -77,7 +78,7 @@ export default class Home extends Component {
             let selectedDishes = [];
             axios.get(url + '/'+userName+'/recommend').then((response) => {
                 console.log(response);
-                recommendDish = response.data.data
+                let recommendDish = response.data.data
                 this.setState({
                     recommendDish: recommendDish
                 })
@@ -261,6 +262,8 @@ export default class Home extends Component {
         const handleShowSelectedDetail = this.handleShowSelectedDetail;
         let recommendDish = this.state.recommendDish;
         const handleShowRecommendDetail = this.handleShowRecommendDetail;
+        const addRecommendtoFavourite = this.addRecommendtoFavourite;
+        let userName = localStorage.userName;
 
         return (
             <div>
@@ -309,6 +312,7 @@ export default class Home extends Component {
                         </div>
                     </div>
                     <div className="container">
+                        {userName === 'undefined'? <p className="text-center">Login for recommend dishes</p>: ''}
                         <div className="tab-content text-center">
                             <div className="tab-pane active show fade" id="tab1" role="tabpanel">
                                 <div className="product-carousel">
@@ -319,7 +323,7 @@ export default class Home extends Component {
                                                     <div className="single-product-item">
                                                         <div className="product-image">
                                                             <a className="modal-view button" data-toggle="modal" data-target="#showDishDetail">
-                                                                <img src={'assets/img/product/d'+(i % 7)+'.jpg'} alt=""/>
+                                                                <img src={'assets/img/product/d'+(i % 9)+'.jpg'} alt=""/>
                                                             </a>
                                                             <div className="product-hover">
                                                                 <ul className="hover-icon-list">
