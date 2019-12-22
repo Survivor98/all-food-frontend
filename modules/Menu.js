@@ -7,14 +7,21 @@ export default class Menu extends Component {
         super(props);
 
         this.state = {
-            selectedDishes: [],
+            menu: [],
             url: 'http://10.21.38.20:5000',
             addFavSign: '0',
-            showDetailObj: null
-        }
+            showDetailObj: null,
+            dishesArr: [0],
+            changeColumnAlertSign: '',
+            numOfMenu: -1
+        };
 
         this.fetchMenu = this.fetchMenu.bind(this);
-
+        this.handleCreateMenu = this.handleCreateMenu.bind(this);
+        this.addColumn = this.addColumn.bind(this);
+        this.deleteColumn = this.deleteColumn.bind(this);
+        this.handleMenuDetail = this.handleMenuDetail.bind(this);
+        this.handleDishDetail = this.handleDishDetail.bind(this);
 
     }
 
@@ -63,17 +70,186 @@ export default class Menu extends Component {
             {
                 params: {
                     start: 0,
-                    limit: 100
+                    limit: 20
                 }
             }).then((response)=>{
             console.log(response);
+
+            /*
+            menu = response.data.menu
+            this.setState({
+                numOfMenu: menu.length
+                menu: menu
+            })
+            */
         }).catch((error)=>{
             console.log(error);
         })
     }
 
+    handleCreateMenu(event){
+        event.preventDefault();
+
+        if(localStorage.userName === 'undefined'){
+            this.setState({
+                changeColumnAlertSign: 'Please Login before create menu!'
+            }, ()=>{
+                setTimeout(()=> {
+                    this.setState({
+                        changeColumnAlertSign: ''
+                    })
+                }, 5000);
+            });
+            return
+        } else {
+            let userName = localStorage.userName;
+            let url = this.state.url;
+            let jwt_token = localStorage.jwtToken;
+
+            let menuName = event.target[0].value;
+            let description = event.target[1].value;
+            if (menuName === ''){
+                this.setState({
+                    changeColumnAlertSign: 'Menu Name cannot be empty'
+                }, ()=>{
+                    setTimeout(()=> {
+                        this.setState({
+                            changeColumnAlertSign: ''
+                        })
+                    }, 5000);
+                });
+                return
+            }
+
+            if (description === ''){
+                this.setState({
+                    changeColumnAlertSign: 'Menu Description cannot be empty'
+                }, ()=>{
+                    setTimeout(()=> {
+                        this.setState({
+                            changeColumnAlertSign: ''
+                        })
+                    }, 5000);
+                });
+                return
+            }
+
+            let dishNum = this.state.dishesArr.length;
+            let hasEmpty = 0;
+            for (let i = 0; i < dishNum; i++){
+                if (event.target[4+i].value === ''){
+                    hasEmpty = 1
+                }
+            }
+            if(hasEmpty !== 1){
+                let dishList = event.target;
+                axios.post(url + '/upload_menu',{
+                    menu: {
+                        menuName: menuName,
+                        userName: userName,
+                        description: description
+                    }
+                },
+                {
+                    /*headers: {"Authorization" : `JWT `+jwt_token},*/
+                    headers:{
+                        'Content-Type': "application/json",
+                    }
+                }).
+                then((response)=>{
+                    console.log(response);
+                    for (let i = 0; i < dishNum; i++){
+                        let dishName = dishList[4 + i].value;
+                        axios.put(url + '/menu/addDish',{
+                            dish: {
+                                menuName: menuName,
+                                dishName: dishName
+                            }
+                        }).
+                        then((response)=>{
+                            console.log(response);
+                        }).catch((error)=>{
+                            console.log(error);
+                        })
+                    }
+                }).catch((error)=>{
+                    console.log(error);
+                });
+            } else {
+                this.setState({
+                    changeColumnAlertSign: 'Dish Name cannot be empty'
+                }, ()=>{
+                    setTimeout(()=> {
+                        this.setState({
+                            changeColumnAlertSign: ''
+                        })
+                    }, 5000);
+                });
+            }
+        }
+    }
+
+    addColumn(){
+        let dishesArr = this.state.dishesArr;
+        if(dishesArr.length < 5){
+            dishesArr.push(dishesArr.length);
+            this.setState({
+                dishesArr: dishesArr
+            })
+        } else {
+            this.setState({
+                changeColumnAlertSign: 'Maximum support quantity of dishes is 5!'
+            }, ()=>{
+                setTimeout(()=> {
+                    this.setState({
+                        changeColumnAlertSign: ''
+                    })
+                }, 5000);
+            })
+        }
+    }
+
+    deleteColumn(){
+        let dishesArr = this.state.dishesArr;
+        if(dishesArr.length > 1){
+            dishesArr.pop();
+            this.setState({
+                dishesArr: dishesArr
+            })
+        } else {
+            this.setState({
+                changeColumnAlertSign: 'Minimum support quantity of dishes is 1!'
+            }, ()=>{
+                setTimeout(()=> {
+                    this.setState({
+                        changeColumnAlertSign: ''
+                    })
+                }, 5000);
+            })
+        }
+    }
+
+    handleDishDetail() {
+            console.log('111');
+    }
+
+    handleMenuDetail(){
+        console.log('111');
+    }
+
+
 
     render() {
+        const handleCreateMenu = this.handleCreateMenu;
+        let dishesArr = this.state.dishesArr;
+        const addColumn = this.addColumn;
+        const deleteColumn = this.deleteColumn;
+        const changeColumnAlertSign = this.state.changeColumnAlertSign;
+        let numOfMenu = this.state.numOfMenu;
+        let menu = this.state.menu;
+        const handleDishDetail = this.handleDishDetail;
+        const handleMenuDetail = this.handleMenuDetail;
+
         return (
             <div>
                 {/*<!-- Breadcrumb Area Start -->*/}
@@ -92,732 +268,72 @@ export default class Menu extends Component {
                 <div className="shop-area pt-110 pb-100 bg-gray mb-95">
                     <div className="container">
                         <div className="row">
-                            <div className="order-xl-2 order-lg-2 col-xl-9 col-lg-8">
+                            <div className="order-xl-2 order-lg-2 col-lg-12">
                                 <div className="ht-product-tab">
-                                    <div className="ht-tab-content">
+                                    <div className="ht-tab-content width-100-percent">
                                         <div className="nav" role="tablist">
                                             <a className="active grid" href="#grid" data-toggle="tab" role="tab" aria-selected="true" aria-controls="grid">
                                                 <i className="fa fa-th"/>
                                             </a>
-                                            <a className="list" href="#list" data-toggle="tab" role="tab" aria-selected="false" aria-controls="list">
+                                            {/*<a className="list" href="#list" data-toggle="tab" role="tab" aria-selected="false" aria-controls="list">
                                                 <i className="fa fa-list"/>
-                                            </a>
+                                            </a>*/}
                                         </div>
-                                        <div className="shop-items">
-                                            <span>Showing 1 to 9 of 11 (2 Pages) </span>
-                                        </div>
-                                    </div>
-                                    <div className="shop-results-wrapper">
-                                        <div className="shop-results"><span>Show:</span>
-                                            <div className="shop-select">
-                                                <select name="number" id="number">
-                                                    <option value="9">9</option>
-                                                    <option value="25">25</option>
-                                                    <option value="50">50</option>
-                                                    <option value="75">75</option>
-                                                    <option value="100">100</option>
-                                                </select>
+                                        <div className="row width-100-percent">
+                                            <div className="col-8">
+                                                <div className="shop-items">
+                                                    {/*<span>Showing {num_research_result} dishes </span>*/}
+                                                    <span>Showing 0 dishes </span>
+                                                </div>
+                                            </div>
+                                            <div className="col-4 text-right">
+                                                <button type="button" className="modal-view btn btn-sm nav-post-btn"
+                                                        data-toggle="modal" data-target="#createMenu"
+                                                >Post Menu</button>
                                             </div>
                                         </div>
-                                        <div className="shop-results"><span>Sort By:</span>
-                                            <div className="shop-select">
-                                                <select name="sort" id="sort">
-                                                    <option value="position">Default sorting</option>
-                                                    <option value="p-name">Sort Popularity</option>
-                                                    <option value="p-price">Sort Price</option>
-                                                </select>
-                                            </div>
-                                        </div>
+
+
                                     </div>
                                 </div>
                                 <div className="ht-product-shop tab-content text-center">
                                     <div className="tab-pane active show fade" id="grid" role="tabpanel">
                                         <div className="custom-row">
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/1.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"></i></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/1.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"></i></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
+                                            {menu.map((object, i)=>{
+                                                return(
+                                                    <div className="custom-col" key={i}>
+                                                        <div className="single-product-item">
+                                                            <div className="product-image">
+                                                                {/*<a>
+                                                                    <img src={'../assets/img/product/d'+(i % 12 + randomSeed)+'.jpg'} alt=""/>
+                                                                </a>*/}
+                                                                <div className="product-hover">
+                                                                    <ul className="hover-icon-list">
+                                                                        <li>
+                                                                            <a id="showDishBtn"
+                                                                               className="modal-view button" data-toggle="modal" data-target="#showDishDetail"
+                                                                               onClick={handleDishDetail.bind(this, i)} key={i}>Dish {i}</a>
+                                                                        </li>
+                                                                    </ul>
+                                                                    <button type="button" className="p-cart-btn">
+                                                                        <a className="modal-view button" data-toggle="modal" data-target="#showMenuDetail"
+                                                                            onClick={handleMenuDetail.bind(this, i)} key={i} >View Menu</a>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="product-text">
+                                                                <div className="pro-price">
+                                                                    <h5 className="my-3 new-price">{object.menuName}</h5>
+                                                                </div>
+                                                                <p className="">{object.description}</p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Juicy Grapes</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$86.00</span>
-                                                            <span className="old-price">$92.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/2.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/2.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"></i></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Fresh Banana</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$40.00</span>
-                                                            <span className="old-price">$43.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/3.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/3.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"></i></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Red Capsicum</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$34.00</span>
-                                                            <span className="old-price">$37.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/4.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/4.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"></i></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Rippen Mango</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$20.00</span>
-                                                            <span className="old-price">$28.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/5.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/5.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Farm's Onion</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$40.00</span>
-                                                            <span className="old-price">$50.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/6.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/6.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Fresh Coconut</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$50.00</span>
-                                                            <span className="old-price">$80.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/7.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/7.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Tangerin Juice</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$44.00</span>
-                                                            <span className="old-price">$47.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/8.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/8.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Pine Apple</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$33.00</span>
-                                                            <span className="old-price">$37.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="custom-col">
-                                                <div className="single-product-item">
-                                                    <div className="product-image">
-                                                        <a href="product-details.html">
-                                                            <img src="assets/img/product/9.jpg" alt=""/>
-                                                        </a>
-                                                        <div className="product-hover">
-                                                            <ul className="hover-icon-list">
-                                                                <li>
-                                                                    <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#"><i className="icon icon-Restart"/></a>
-                                                                </li>
-                                                                <li><a href="assets/img/product/9.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                            </ul>
-                                                            <button type="button" className="p-cart-btn">Add to cart</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="product-text">
-                                                        <div className="product-rating">
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o color"/>
-                                                            <i className="fa fa-star-o"/>
-                                                            <i className="fa fa-star-o"/>
-                                                        </div>
-                                                        <h5><a href="product-details.html">Fresh Cucumber</a></h5>
-                                                        <div className="pro-price">
-                                                            <span className="new-price">$86.00</span>
-                                                            <span className="old-price">$92.00</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="tab-pane fade text-left" id="list" role="tabpanel">
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/1.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/1.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Farm Fresh Black Grape</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$110.00</span>
-                                                    <span className="old-price">$122.00</span>
-                                                </div>
-                                                <p>Go for bananas with very small patches of black and used to make banana bread or served with single cream and sugar.</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/2.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/2.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Wonderfully Sweet Banana</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$90.00</span>
-                                                    <span className="old-price">$99.00</span>
-                                                </div>
-                                                <p>To eat straight away, go for bananas with very small patches of black on the ... Mashed and used to make banana bread.</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/3.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/3.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Fresh Red Capcicum</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$190.00</span>
-                                                    <span className="old-price">$120.00</span>
-                                                </div>
-                                                <p>The 30-inch Apple Cinema HD Display delivers an amazing 2560 x 1600 pixel resolution. Designed specifically fo..</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/4.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/4.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Healthy Juicy Mango</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$80.00</span>
-                                                    <span className="old-price">$70.00</span>
-                                                </div>
-                                                <p>The 30-inch Apple Cinema HD Display delivers an amazing 2560 x 1600 pixel resolution. Designed specifically fo..</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/6.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/6.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Fresh Large Coconut</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$70.00</span>
-                                                    <span className="old-price">$50.00</span>
-                                                </div>
-                                                <p>The 30-inch Apple Cinema HD Display delivers an amazing 2560 x 1600 pixel resolution. Designed specifically fo..</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/7.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/7.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Chemical Free Fresh Juice</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$200.00</span>
-                                                    <span className="old-price">$100.00</span>
-                                                </div>
-                                                <p>The 30-inch Apple Cinema HD Display delivers an amazing 2560 x 1600 pixel resolution. Designed specifically fo..</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/8.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/8.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Fresh Pineapple</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$190.00</span>
-                                                    <span className="old-price">$120.00</span>
-                                                </div>
-                                                <p>The 30-inch Apple Cinema HD Display delivers an amazing 2560 x 1600 pixel resolution. Designed specifically fo..</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
-                                        </div>
-                                        <div className="single-product-item">
-                                            <div className="product-image">
-                                                <a href="product-details.html">
-                                                    <img src="assets/img/product/9.jpg" alt=""/>
-                                                </a>
-                                                <div className="product-hover">
-                                                    <ul className="hover-icon-list">
-                                                        <li>
-                                                            <a href="wishlist.html"><i className="icon icon-Heart"/></a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#"><i className="icon icon-Restart"/></a>
-                                                        </li>
-                                                        <li><a href="assets/img/product/9.jpg" data-toggle="modal" data-target="#productModal"><i className="icon icon-Search"/></a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="product-text">
-                                                <h5><a href="product-details.html">Farm's Fresh Cucumber</a></h5>
-                                                <div className="product-rating">
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o color"/>
-                                                    <i className="fa fa-star-o"/>
-                                                    <i className="fa fa-star-o"/>
-                                                </div>
-                                                <div className="pro-price">
-                                                    <span className="new-price">$190.00</span>
-                                                    <span className="old-price">$120.00</span>
-                                                </div>
-                                                <p>The 30-inch Apple Cinema HD Display delivers an amazing 2560 x 1600 pixel resolution. Designed specifically fo..</p>
-                                                <button type="button" className="p-cart-btn default-btn">Add to cart</button>
-                                            </div>
+                                                    </div>)
+                                            })}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="pagination-wrapper">
-                                    <p>Showing 1 to 9 of 11 (2 Pages)</p>
-                                    <nav aria-label="navigation">
-                                        <ul className="pagination">
-                                            <li className="page-item active"><a className="page-link" href="#">1</a></li>
-                                            <li className="page-item"><a className="page-link" href="#">2</a></li>
-                                            <li className="page-item"><a className="page-link" href="#">></a></li>
-                                            <li className="page-item"><a className="page-link" href="#">>|</a></li>
-                                        </ul>
-                                    </nav>
-                                </div>
-                            </div>
-                            <div className="col-xl-3 col-lg-4">
-                                <div className="sidebar-wrapper">
-                                    <h3>Layered Navigation</h3>
-                                    <div className="sidebar-widget">
-                                        <h3>Categories</h3>
-                                        <div className="sidebar-widget-option-wrapper">
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="cat1"/>
-                                                <label htmlFor="cat1">Categories1 <span>(4)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="cat2"/>
-                                                <label htmlFor="cat2">Categories2 <span>(5)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="cat3"/>
-                                                <label htmlFor="cat3">Categories5 <span>(3)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="cat4"/>
-                                                <label htmlFor="cat4">Categories6 <span>(3)</span></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="sidebar-widget price-widget">
-                                        <h3>Price Filter</h3>
-                                        <div className="price-slider-container">
-                                            <div id="slider-range"></div>
-                                            <div className="price_slider_amount">
-                                                <div className="slider-values">
-                                                    <input type="text" id="amount" name="price"  placeholder="Add Your Price" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="sidebar-widget">
-                                        <h3>Color</h3>
-                                        <div className="sidebar-widget-option-wrapper">
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="black"/>
-                                                <label htmlFor="black">Black <span>(4)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="blue"/>
-                                                <label htmlFor="blue">Blue <span>(3)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="brown"/>
-                                                <label htmlFor="brown">Brown <span>(3)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="white"/>
-                                                <label htmlFor="white">White <span>(3)</span></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="sidebar-widget">
-                                        <h3>Manufacturer</h3>
-                                        <div className="sidebar-widget-option-wrapper">
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="dior"/>
-                                                <label htmlFor="dior">Christian Dior <span>(6)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="ferragamo"/>
-                                                <label htmlFor="ferragamo">ferragamo <span>(7)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="hermes"/>
-                                                <label htmlFor="hermes">hermes <span>(8)</span></label>
-                                            </div>
-                                            <div className="sidebar-widget-option">
-                                                <input type="checkbox" id="louis"/>
-                                                <label htmlFor="louis">louis vuitton <span>(6)</span></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="sidebar-banner-img">
-                                    <a href="#"><img src="assets/img/banner/6.png" alt=""/></a>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -825,110 +341,164 @@ export default class Menu extends Component {
                 {/*<!-- Shop Area End -->*/}
 
                 {/*<!-- QUICKVIEW PRODUCT -->*/}
-                <div className="modal fade" id="productModal" tabIndex="-1" role="dialog">
+                {/*<div className="modal fade" id="showDishDetail" tabIndex="-1" role="dialog">
                     <div className="modal-dialog" role="document">
                         <div className="modal-content">
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">
-                                <i className="fa fa-times"/>
-                                </span>
-                            </button>
-                            <div className="quick-view-container">
-                                <div className="column-left">
-                                    <div className="tab-content product-details-large" id="myTabContent">
-                                        <div className="tab-pane fade show active" id="single-slide1" role="tabpanel" aria-labelledby="single-slide-tab-1">
-                                            <div className="single-product-img">
-                                                <img src="assets/img/product/1.jpg" alt=""/>
-                                            </div>
-                                        </div>
-                                        <div className="tab-pane fade" id="single-slide2" role="tabpanel" aria-labelledby="single-slide-tab-2">
-                                            <div className="single-product-img">
-                                                <img src="assets/img/product/2.jpg" alt=""/>
-                                            </div>
-                                        </div>
-                                        <div className="tab-pane fade" id="single-slide3" role="tabpanel" aria-labelledby="single-slide-tab-3">
-                                            <div className="single-product-img">
-                                                <img src="assets/img/product/3.jpg" alt=""/>
-                                            </div>
-                                        </div>
-                                        <div className="tab-pane fade" id="single-slide4" role="tabpanel" aria-labelledby="single-slide-tab-4">
-                                            <div className="single-product-img">
-                                                <img src="assets/img/product/4.jpg" alt=""/>
-                                            </div>
-                                        </div>
-                                        <div className="tab-pane fade" id="single-slide5" role="tabpanel" aria-labelledby="single-slide-tab-5">
-                                            <div className="single-product-img">
-                                                <img src="assets/img/product/5.jpg" alt=""/>
-                                            </div>
-                                        </div>
-                                        <div className="tab-pane fade" id="single-slide6" role="tabpanel" aria-labelledby="single-slide-tab-6">
-                                            <div className="single-product-img" />
-                                            <img src="assets/img/product/6.jpg" alt=""/>
-                                        </div>
-                                    </div>
-                                    <div className="single-product-menu">
-                                        <div className="nav single-slide-menu" role="tablist">
-                                            <div className="single-tab-menu">
-                                                <a className="active" data-toggle="tab" id="single-slide-tab-1" href="#single-slide1">
-                                                    <img src="assets/img/product/1.jpg" alt=""/>
-                                                </a>
-                                            </div>
-                                            <div className="single-tab-menu">
-                                                <a data-toggle="tab" id="single-slide-tab-2" href="#single-slide2">
-                                                    <img src="assets/img/product/2.jpg" alt=""/>
-                                                </a>
-                                            </div>
-                                            <div className="single-tab-menu">
-                                                <a data-toggle="tab" id="single-slide-tab-3" href="#single-slide3">
-                                                    <img src="assets/img/product/3.jpg" alt=""/>
-                                                </a>
-                                            </div>
-                                            <div className="single-tab-menu">
-                                                <a data-toggle="tab" id="single-slide-tab-4" href="#single-slide4">
-                                                    <img src="assets/img/product/4.jpg" alt=""/>
-                                                </a>
-                                            </div>
-                                            <div className="single-tab-menu">
-                                                <a data-toggle="tab" id="single-slide-tab-5" href="#single-slide5">
-                                                    <img src="assets/img/product/5.jpg" alt=""/>
-                                                </a>
-                                            </div>
-                                            <div className="single-tab-menu">
-                                                <a data-toggle="tab" id="single-slide-tab-6" href="#single-slide6">
-                                                    <img src="assets/img/product/6.jpg" alt=""/>
-                                                </a>
-                                            </div>
-                                        </div>
+                            <div className="modal-header">
+                                <button onClick={this.handleQuitDetail} type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">
+                                        <i className="fa fa-close"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="quick-view-container">
+                                    <div className="quick-view-text">
+                                        {showDetailObj !== null?
+                                            (<div>
+                                                <div className="form-pop-up-content">
+                                                    <h2>Basic Info</h2>
+                                                </div>
+                                                <div className="dishDetailTextBlock">
+                                                    <h4 className="my-2">{showDetailObj.dishName}</h4>
+                                                    <p>Dish ID: {showDetailObj.dishId}</p>
+                                                    <p>Submit Time: {showDetailObj.submitTime}</p>
+                                                    <p>Cooking Time: {showDetailObj.cookingTime}</p>
+                                                </div>
+                                                <div className="form-pop-up-content">
+                                                    <h2>Tags</h2>
+                                                </div>
+                                                <div className="dishDetailTextBlock">
+                                                    <p>Easy or not: {showDetailObj.tag.easy}</p>
+                                                    <p>Dish Type:
+                                                        {
+                                                            showDetailObj.tag.dishType.map((object, i)=> <span key={i}>{object} </span>)
+                                                        }
+                                                    </p>
+                                                    <p>Festival:
+                                                        {
+                                                            showDetailObj.tag.festival.map((object, i)=> <span key={i}>{object} </span>)
+                                                        }
+                                                    </p>
+                                                    <p>Target People:
+                                                        {
+                                                            showDetailObj.tag.targetPeople.map((object, i)=> <span key={i}>{object} </span>)
+                                                        }
+                                                    </p>
+                                                    <p>Taste:
+                                                        {
+                                                            showDetailObj.tag.taste.map((object, i)=> <span key={i}>{object} </span>)
+                                                        }
+                                                    </p>
+                                                    <p>Region:
+                                                        {
+                                                            showDetailObj.tag.region.map((object, i)=> <span key={i}>{object} </span>)
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div className="form-pop-up-content">
+                                                    <h2>Ingredients</h2>
+                                                </div>
+                                                <div className="dishDetailTextBlock">
+                                                    <p className="tags">
+                                                        {
+                                                            showDetailObj.ingredient.map((object, i)=>
+                                                                <span className="badge badge-info mx-1" key={i}>{object} </span>)
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div className="form-pop-up-content">
+                                                    <h2>Nutrition</h2>
+                                                </div>
+                                                <div className="dishDetailTextBlock">
+                                                    <div className="row">
+                                                        <div className="col-lg-6">
+                                                            <p className="">Sugar: {showDetailObj.nutrition["sugar"]}</p>
+                                                            <p className="">Cholesterol: {showDetailObj.nutrition["cholesterol"]}</p>
+                                                            <p className="">Fat: {showDetailObj.nutrition["fat"]}</p>
+                                                            <p className="">Protein: {showDetailObj.nutrition["protein"]}</p>
+                                                        </div>
+                                                        <div className="col-lg-6">
+                                                            <p className="">Saturated Fat: {showDetailObj.nutrition["saturatedFat"]}</p>
+                                                            <p className="">Sodium: {showDetailObj.nutrition["sodium"]}</p>
+                                                            <p className="">Calories: {showDetailObj.nutrition["calories"]}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="form-pop-up-content">
+                                                    <h2>Description</h2>
+                                                </div>
+                                                <div className="dishDetailTextBlock">
+                                                    <p>{showDetailObj.description}</p>
+                                                </div>
+                                                <div className="form-pop-up-content">
+                                                    <h2>Steps</h2>
+                                                </div>
+                                                <div className="dishDetailTextBlock">
+                                                    <ul>
+                                                        {showDetailObj.steps.map((object, i)=>{
+                                                            <li key={i}>{object}</li>
+                                                        })
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            </div>):''
+                                        }
                                     </div>
                                 </div>
-                                <div className="column-right">
+                            </div>
+                        </div>
+                    </div>
+                </div>*/}
+                <div className="modal fade" id="createMenu" tabIndex="-1" role="dialog">
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">
+                                        <i className="fa fa-close"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="quick-view-container">
                                     <div className="quick-view-text">
-                                        <h2>Curabitur a purus</h2>
-                                        <h3 className="q-product-price">$34.00<span className="old-price">$37.00</span></h3>
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco,Proin lectus ipsum, gravida et mattis vulputate, tristique ut lectus</p>
-                                        <div className="input-cart">
-                                            <input value="1" type="number"/>
-                                            <button className="default-btn">Add to cart</button>
+                                        <div className="form-pop-up-content">
+                                            <h2>Create Menu</h2>
                                         </div>
-                                        <div className="share-product">
-                                            <h4>Share this product</h4>
-                                            <div className="social-link">
-                                                <a href="#" target="_blank" className="facebook">
-                                                    <i className="fa fa-facebook"/>
-                                                </a>
-                                                <a href="#" target="_blank" className="twitter">
-                                                    <i className="fa fa-twitter"/>
-                                                </a>
-                                                <a href="#" target="_blank" className="pinterest">
-                                                    <i className="fa fa-pinterest"/>
-                                                </a>
-                                                <a href="#" target="_blank" className="google">
-                                                    <i className="fa fa-google-plus"/>
-                                                </a>
-                                                <a href="#" target="_blank" className="linkedin">
-                                                    <i className="fa fa-linkedin"/>
-                                                </a>
-                                            </div>
+                                        <div className="dishDetailTextBlock">
+                                            <form onSubmit={handleCreateMenu}>
+                                                <div className="form-box">
+                                                    <h4 className="mt-3">Menu Name</h4>
+                                                    <div className="col">
+                                                        <input type="text" className="form-control" placeholder="Menu Name" name="menuName"/>
+                                                    </div>
+                                                    <h4 className="mt-3">Description</h4>
+                                                    <div className="col">
+                                                        <div className="form-group">
+                                                            <textarea className="form-control" id="createDishDescription" rows="3"/>
+                                                        </div>
+                                                    </div>
+                                                    <div className="row mt-3">
+                                                        <div className="col-6">
+                                                            <h4>Add Dishes</h4>
+                                                        </div>
+                                                        <div className="col-6 text-right">
+                                                            <button type="button" className="btn btn-sm btn-outline-success mr-2" onClick={addColumn.bind(this)}>+</button>
+                                                            <button type="button" className="btn btn-sm btn-outline-danger" onClick={deleteColumn.bind(this)}>-</button>
+                                                        </div>
+                                                    </div>
+                                                    {changeColumnAlertSign === ''? '':<div className="alert alert-danger" role="alert">{changeColumnAlertSign}</div>}
+                                                    {dishesArr.map((object, i)=>{
+                                                        return(
+                                                            <div className="col mt-3" key={i}>
+                                                                <input type="text" className="form-control" placeholder="Dish Name" name="dishName"/>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                                <button type="submit" className="btn btn-sm nav-post-btn my-4">Create</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>

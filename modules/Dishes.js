@@ -19,7 +19,8 @@ export default class Dishes extends Component {
             step: 10000,
             url: 'http://10.21.38.20:5000',
             showDetailObj: null,
-            randomSeed: 12
+            randomSeed: 12,
+            tag: {}
         };
 
         this.getSearchResult = this.getSearchResult.bind(this);
@@ -28,6 +29,7 @@ export default class Dishes extends Component {
         this.addtoFavourite = this.addtoFavourite.bind(this);
         this.handleQuitDetail = this.handleQuitDetail.bind(this);
         this.handleCreateDish = this.handleCreateDish.bind(this);
+        this.getTag = this.getTag.bind(this);
     }
 
     componentDidMount() {
@@ -71,6 +73,7 @@ export default class Dishes extends Component {
             option: this.props.params.option
         });
         this.getSearchResult();
+        this.getTag();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -91,6 +94,19 @@ export default class Dishes extends Component {
 
             this.getSearchResult();
         }
+    }
+
+    getTag(){
+        let url = this.state.url;
+        axios.get(url+'/tag').
+        then((response) => {
+            console.log(response);
+            this.setState({
+                tag: response.data.data
+            })
+        }).catch((error)=>{
+            console.log(error);
+        })
     }
 
     fetchDishes(requireDish, start){
@@ -181,15 +197,19 @@ export default class Dishes extends Component {
 
     addtoFavourite(key, event){
         let url = this.state.url;
+        let dishName = this.state.filterResult[key].dishName;
         if(localStorage.userName === "undefined"){
             window.alert('You need to login for adding dish to favourite!');
         } else {
             let jwt_token = localStorage.jwtToken;
-            axios.post(url+'/favorite_dish',
+            axios.put(url+'/favorite_dish',{
+                    dishName: dishName,
+                    userName: userName
+                },
                 {
-                    headers: {"Authorization" : `Bearer`+jwt_token},
-                    params: {
-                        dishId: key
+                    /*headers: {"Authorization" : `JWT `+jwt_token},*/
+                    headers:{
+                        'Content-Type': "application/json",
                     }
                 }).then((response) => {
                 console.log(response);
@@ -223,17 +243,24 @@ export default class Dishes extends Component {
     }
 
     handleCreateDish(event){
-        console.log(event);
         event.preventDefault();
+        let url = this.state.url;
+
         let dishName = event.target[0].value;
         let cookingTime = event.target[1].value;
-        let easy = event.target[2].value;
-        let dishType = event.target[3].value;
-        let festival = event.target[4].value;
+        let easy = event.target[2].value === 'true'? true: false;
+        let lst4 = [];
+        let dishType = lst4.push(event.target[3].value);
+        let lst3 = [];
+        let festival = lst3.push(event.target[4].value);
         let targetPeople = event.target[5].value;
-        let taste = event.target[6].value;
-        let region = event.target[7].value;
-        let ingredients = event.target[8].value;
+        let lst1 = [];
+        let taste = lst1.push(event.target[6].value);
+        let lst2 = [];
+        let region = lst2.push(event.target[7].value);
+
+        let ingredients = event.target[8].value.split('###');
+
         let sugar = event.target[9].value;
         let cholesterol = event.target[10].value;
         let fat = event.target[11].value;
@@ -241,8 +268,45 @@ export default class Dishes extends Component {
         let satFat = event.target[13].value;
         let sodium = event.target[14].value;
         let calorie = event.target[15].value;
+
         let description = event.target[16].value;
-        let steps = event.target[17].value;
+        let steps = event.target[17].value.split('###');
+        let nutritionLimitation  = [];
+        nutritionLimitation.push(sugar);
+        nutritionLimitation.push(cholesterol);
+        nutritionLimitation.push(fat);
+        nutritionLimitation.push(protein);
+        nutritionLimitation.push(satFat);
+        nutritionLimitation.push(sodium);
+        nutritionLimitation.push(calorie);
+        let tag = {
+            easy: easy,
+            taste: taste,
+            region: region,
+            dishType: dishType,
+            targetPeople: targetPeople,
+            nutritionLimitation: [],
+            festival: festival
+        };
+
+        axios.post(url+'/upload_dish', {
+            dish:{
+                dishName: dishName,
+                cookingTime: cookingTime,
+                steps: steps,
+                submitTime: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''),
+                visitTimes: 1,
+                description: description,
+                ingredient: ingredients,
+                nutrition: nutritionLimitation,
+                tag: tag,
+                tagSummary: []
+            }
+        }).then((response)=>{
+            console.log(response);
+        }).catch((error)=>{
+            console.log(error);
+        })
 
     }
 
@@ -257,6 +321,7 @@ export default class Dishes extends Component {
         const handleQuitDetail = this.handleQuitDetail;
         let randomSeed = this.state.randomSeed;
         const handleCreateDish = this.handleCreateDish;
+        const tag = this.state.tag;
 
         return (
             <div>
@@ -874,7 +939,7 @@ export default class Dishes extends Component {
                                                             <input type="text" className="form-control" placeholder="Dish Name" name="dishName"/>
                                                         </div>
                                                         <div className="col">
-                                                            <input type="text" className="form-control" placeholder="Cooking Time" name="cookingTime"/>
+                                                            <input type="number" steps="1" className="form-control" placeholder="Cooking Time" name="cookingTime"/>
                                                         </div>
                                                     </div>
                                                     <h4 className="mt-3">Tags</h4>
@@ -883,16 +948,18 @@ export default class Dishes extends Component {
                                                             <label htmlFor="createDishEasy">Easy or not</label>
                                                             <select id="createDishEasy"
                                                                     className="form-control">
-                                                                <option selected>Choose...</option>
-                                                                <option>...</option>
+                                                                <option>true</option>
+                                                                <option>false</option>
                                                             </select>
                                                         </div>
                                                         <div className="form-group col-md-6">
                                                             <label htmlFor="createDishType">Dish Type</label>
                                                             <select id="createDishType"
                                                                     className="form-control">
-                                                                <option selected>Choose...</option>
-                                                                <option>...</option>
+                                                                {tag['dishType']?tag['dishType'].map((object, i)=>{
+                                                                    return(<option key={i}>{object}</option>)
+                                                                    }) : ''
+                                                                }
                                                             </select>
                                                         </div>
                                                     </div>
@@ -901,16 +968,18 @@ export default class Dishes extends Component {
                                                             <label htmlFor="createDishFestival">Festival</label>
                                                             <select id="createDishFestival"
                                                                     className="form-control">
-                                                                <option selected>Choose...</option>
-                                                                <option>...</option>
+                                                                {tag['festival']? tag['festival'].map((object, i)=>{
+                                                                    return(<option key={i}>{object}</option>)
+                                                                }) : ''}
                                                             </select>
                                                         </div>
                                                         <div className="form-group col-md-6">
                                                             <label htmlFor="createDishTarget">Target People</label>
                                                             <select id="createDishTarget"
                                                                     className="form-control">
-                                                                <option selected>Choose...</option>
-                                                                <option>...</option>
+                                                                {tag['targetPeople']? tag['targetPeople'].map((object, i)=>{
+                                                                    return(<option key={i}>{object}</option>)
+                                                                }) : ''}
                                                             </select>
                                                         </div>
                                                     </div>
@@ -919,20 +988,23 @@ export default class Dishes extends Component {
                                                             <label htmlFor="createDishTaste">Taste</label>
                                                             <select id="createDishTaste"
                                                                     className="form-control">
-                                                                <option selected>Choose...</option>
-                                                                <option>...</option>
+                                                                {tag['taste']? tag['taste'].map((object, i)=>{
+                                                                    return(<option key={i}>{object}</option>)
+                                                                }) : ''}
                                                             </select>
                                                         </div>
                                                         <div className="form-group col-md-6">
                                                             <label htmlFor="createDishRegion">Region</label>
                                                             <select id="createDishRegion"
                                                                     className="form-control">
-                                                                <option selected>Choose...</option>
-                                                                <option>...</option>
+                                                                {tag['region']? tag['region'].map((object, i)=>{
+                                                                    return(<option key={i}>{object}</option>)
+                                                                }) : ''}
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <h4 className="mt-3">Ingredients</h4>
+                                                    <p>Please divide each ingredient using '###' symbol</p>
                                                     <div className="form-group">
                                                         <label className="sr-only" htmlFor="sugar-input">Ingredients</label>
                                                         <input type="text" className="form-control" placeholder="Ingredients" name="ingredients"/>
@@ -942,13 +1014,13 @@ export default class Dishes extends Component {
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="sugar-input">Sugar</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="sugar-input" placeholder="Sugar"/>
+                                                                <input type="number" step="1" className="form-control" id="sugar-input" placeholder="Sugar"/>
                                                             </div>
                                                         </div>
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="cholesterol-input">Cholesterol</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="cholesterol-input" placeholder="Cholesterol(unit)"/>
+                                                                <input type="number" step="1" className="form-control" id="cholesterol-input" placeholder="Cholesterol(unit)"/>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -956,13 +1028,13 @@ export default class Dishes extends Component {
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="fat-input">Fat</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="fat-input" placeholder="Fat(unit)"/>
+                                                                <input type="number" step="1" className="form-control" id="fat-input" placeholder="Fat(unit)"/>
                                                             </div>
                                                         </div>
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="protein-input">Protein</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="protein-input" placeholder="Protein(unit)"/>
+                                                                <input type="number" step="1" className="form-control" id="protein-input" placeholder="Protein(unit)"/>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -970,13 +1042,13 @@ export default class Dishes extends Component {
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="safat-input">Saturated Fat</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="safat-input" placeholder="Saturated Fat(unit)"/>
+                                                                <input type="number" step="1" className="form-control" id="safat-input" placeholder="Saturated Fat(unit)"/>
                                                             </div>
                                                         </div>
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="sodium-input">Sodium</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="sodium-input" placeholder="Sodium(unit)"/>
+                                                                <input type="number" step="1" className="form-control" id="sodium-input" placeholder="Sodium(unit)"/>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -984,7 +1056,7 @@ export default class Dishes extends Component {
                                                         <div className="col-sm-6 my-1">
                                                             <label className="sr-only" htmlFor="calories-input">Calories</label>
                                                             <div className="input-group">
-                                                                <input type="text" className="form-control" id="calories-input" placeholder="Calories(unit)"/>
+                                                                <input type="number" step="1" className="form-control" id="calories-input" placeholder="Calories(unit)"/>
                                                             </div>
                                                         </div>
                                                     </div>

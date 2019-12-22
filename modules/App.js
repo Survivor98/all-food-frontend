@@ -20,6 +20,16 @@ export default class App extends Component {
         this.handleLogout = this.handleLogout.bind(this);
         this.handleRegister = this.handleRegister.bind(this);
         this.handleEnterMySpace = this.handleEnterMySpace.bind(this);
+        this.handleRefreshCleanUp = this.handleRefreshCleanUp.bind(this);
+    }
+
+    componentDidMount(){
+        window.addEventListener('beforeunload', this.handleRefreshCleanUp());
+    }
+
+    componentWillUnmount(){
+        this.handleRefreshCleanUp;
+        window.removeEventListener('beforeunload', this.handleRefreshCleanUp());
     }
 
     handleLogin(event){
@@ -123,7 +133,7 @@ export default class App extends Component {
         let url = this.state.url;
         if(userName !== ''){
             axios.get(url+'/user/' + userName,
-                { headers: {"Authorization" : `Bearer`+jwt_token}
+                { headers: {"Authorization" : `JWT `+jwt_token}
             }).then((response) => {
                 console.log(response)
             }).catch((error)=>
@@ -137,6 +147,13 @@ export default class App extends Component {
             window.alert('You need to login before going to your homepage!');
         }
 
+    }
+
+    handleRefreshCleanUp() {
+        if(localStorage.userName !== 'undefined') {
+            localStorage.userName = 'undefined';
+            localStorage.jwtToken = 'undefined';
+        }
     }
 
     render() {
@@ -207,9 +224,9 @@ export default class App extends Component {
                                 </div>
                             </div>
                             <div className="col-lg-2 col-sm-4">
-                                <div className="logo text-center">
+                                {/*<div className="logo text-center">
                                     <IndexLink to="/"><img src="assets/img/logo/logo.png" alt="NatureCircle"/></IndexLink>
-                                </div>
+                                </div>*/}
                             </div>
                             <div className="col-lg-5 col-sm-8">
                                 <div className="header-content d-flex justify-content-end">
@@ -233,45 +250,24 @@ export default class App extends Component {
                             </div>
                         </div>
                     </div>
-                    {/*<div className="mobile-menu-area">
+                    <div className="mobile-menu-area">
                         <div className="mobile-menu container">
                             <nav id="mobile-menu-active">
                                 <ul className="menu-overflow">
-                                    <li><a href="index.html">HOME</a>
-                                        <ul>
-                                            <li><a href="index.html">Home One</a></li>
-                                            <li><a href="index-2.html">Home Two</a></li>
-                                            <li><a href="index-3.html">Home Three</a></li>
-                                            <li><a href="index-4.html">Home Four</a></li>
-                                            <li><a href="index-5.html">Home Five</a></li>
-                                            <li><a href="index-6.html">Home Six</a></li>
-                                        </ul>
+                                    <li activeClassName="active">
+                                        <IndexLink to="/">Home</IndexLink>
                                     </li>
-                                    <li><a href="shop.html">Shop</a>
-                                        <ul>
-                                            <li><a href="shop-full-width.html">shop full Width</a></li>
-                                            <li><a href="shop-right-sidebar.html">shop Right Sidebar</a></li>
-                                            <li><a href="wishlist.html">Wishlist Page</a></li>
-                                            <li><a href="cart.html">cart Page</a></li>
-                                            <li><a href="checkout.html">checkout Page</a></li>
-                                            <li><a href="product-details.html">Single Shop</a></li>
-                                        </ul>
+                                    <li activeClassName="active">
+                                        <Link to="/Dishes">Dishes
+                                        </Link>
                                     </li>
-                                    <li><a href="blog.html">Blog</a>
-                                        <ul>
-                                            <li><a href="blog-2-column.html">blog 2 column</a></li>
-                                            <li><a href="blog-3-column.html">blog 3 column</a></li>
-                                            <li><a href="blog-left-sidebar.html">blog Left Sidebar</a></li>
-                                            <li><a href="blog-details.html">blog details</a></li>
-                                            <li><a href="blog-details-left-sidebar.html">blog details left Sidebar</a></li>
-                                        </ul>
-                                    </li>
-                                    <li><a href="contact.html">Contact</a></li>
-                                    <li><a href="404.html">404</a></li>
+                                    <li activeClassName="active"><Link to="/Menu">Menu</Link></li>
+                                    <li activeClassName="active"><Link to="/Health">Health</Link></li>
+                                    <li activeClassName="active"><Link to="/MySpace" onClick={handleEnterMySpace.bind(this)}>MySpace</Link></li>
                                 </ul>
                             </nav>
                         </div>
-                    </div>*/}
+                    </div>
                 </header>
 
                 {this.props.children}
