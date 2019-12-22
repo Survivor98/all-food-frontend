@@ -132,7 +132,7 @@ export default class App extends Component {
         let userName = this.state.userName;
         let url = this.state.url;
         if(userName !== ''){
-            axios.get(url+'/user/' + userName,
+            {/*axios.get(url+'/user/' + userName,
                 { headers: {"Authorization" : `JWT `+jwt_token}
             }).then((response) => {
                 console.log(response)
@@ -140,7 +140,7 @@ export default class App extends Component {
                 {
                     console.log(error);
                 }
-            );
+            );*/}
             hashHistory.push('/MySpace');
 
         } else {

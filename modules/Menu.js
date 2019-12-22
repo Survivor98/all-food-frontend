@@ -144,9 +144,9 @@ export default class Menu extends Component {
             if(hasEmpty !== 1){
                 let dishList = event.target;
                 axios.post(url + '/upload_menu',{
+                    userName: userName,
                     menu: {
                         menuName: menuName,
-                        userName: userName,
                         description: description
                     }
                 },
@@ -160,11 +160,10 @@ export default class Menu extends Component {
                     console.log(response);
                     for (let i = 0; i < dishNum; i++){
                         let dishName = dishList[4 + i].value;
+                        console.log(menuName, dishName);
                         axios.put(url + '/menu/addDish',{
-                            dish: {
-                                menuName: menuName,
-                                dishName: dishName
-                            }
+                            menuName: menuName,
+                            dishName: dishName
                         }).
                         then((response)=>{
                             console.log(response);
@@ -283,7 +282,7 @@ export default class Menu extends Component {
                                             <div className="col-8">
                                                 <div className="shop-items">
                                                     {/*<span>Showing {num_research_result} dishes </span>*/}
-                                                    <span>Showing 0 dishes </span>
+                                                    <span>Showing {menu.length} menus </span>
                                                 </div>
                                             </div>
                                             <div className="col-4 text-right">

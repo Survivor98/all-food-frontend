@@ -10,7 +10,18 @@ export default class MySpace extends Component {
             userName:'',
             alertSign: '0',
             alertSign1: '0',
-            url: 'http://10.21.38.20:5000'
+            url: 'http://10.21.38.20:5000',
+            userAge: -1,
+            userEMail: '',
+            userHeight: -1,
+            userWeight: -1,
+            userPhone: '',
+            favDishes: [],
+            userPreference: [],
+            userUploadMenu: [],
+            userUploadDish: [],
+            userRegion: '',
+            userTaste: ''
         };
         this.handleEditPreference = this.handleEditPreference.bind(this);
         this.handleEditInfo = this.handleEditInfo.bind(this);
@@ -29,8 +40,10 @@ export default class MySpace extends Component {
         let userName = localStorage.userName;
         this.setState({
             userName: userName
+        }, ()=>{
+            this.fetchUserData()
         });
-        this.fetchUserData()
+
     }
 
     fetchUserData(){
@@ -40,6 +53,19 @@ export default class MySpace extends Component {
             let url = this.state.url;
             axios.get(url+'/user/'+userName).then((response) => {
                 console.log(response);
+                this.setState({
+                    userAge: response.data.data.age,
+                    userEMail: response.data.data.eMail,
+                    userHeight: response.data.data.height,
+                    userWeight: response.data.data.weight,
+                    userPhone: response.data.data.phoneNumber,
+                    favDishes: response.data.data.myFavoriteDishes,
+                    userPreference: response.data.data.myPreference,
+                    userUploadMenu: response.data.data.myUploadMenu,
+                    userUploadDish: response.data.data.myUploadDish,
+                    userRegion: response.data.data.region,
+                    userTaste: response.data.data.taste
+                })
             }).catch((error)=>{
                     console.log(error);
                 }
@@ -136,6 +162,18 @@ export default class MySpace extends Component {
         const handleEditInfo = this.handleEditInfo;
         const handlePwdChange = this.handlePwdChange;
 
+        let userAge = this.state.userAge;
+        let userEMail = this.state.userEMail;
+        let userHeight = this.state.userHeight;
+        let userWeight = this.state.userWeight;
+        let userPhone = this.state.userPhone;
+        let favDishes = this.state.favDishes;
+        let userPreference = this.state.userPreference;
+        let userUploadMenu = this.state.userUploadMenu;
+        let userUploadDish = this.state.userUploadDish;
+        let userRegion = this.state.userRegion;
+        let userTaste = this.state.userTaste;
+
         return (
             <div>
                 {/*<!-- Breadcrumb Area Start -->*/}
@@ -171,19 +209,19 @@ export default class MySpace extends Component {
                                     <input type="text" name="user_id" id="user_id" placeholder="User ID *">
                                 </div>-->*/}
                                 <div className="col-md-6">
-                                    <input type="text" name="tastes" id="tastes" placeholder="Tastes *"/>
+                                    <input type="text" name="tastes" id="tastes" placeholder={userTaste}/>
                                 </div>
-                                <div className="col-md-6">
-                                    <input type="text" name="tastes" id="taboo" placeholder="Taboo *"/>
+                                {/*<div className="col-md-6">
+                                    <input type="text" name="tastes" id="taboo" placeholder="Tastes *" />
                                 </div>
                                 <div className="col-md-6">
                                     <input type="text" value="spicy" name="diseases" id="diseases" placeholder="Diseases *"/>
-                                </div>
+                                </div>*/}
                                 <div className="col-md-6">
-                                    <input type="text" value="Jiangxi" name="tastes" id="regions" placeholder="Regions *"/>
+                                    <input type="text" name="tastes" id="regions" placeholder={userRegion}/>
                                 </div>
                             </div>
-                            <textarea name="description" id="description" placeholder="Description *"/>
+                            {/*<textarea name="description" id="description" placeholder="Description *"/>*/}
                             <button type="submit" className="submit-btn default-btn"  onClick={handleEditPreference.bind(this)}>
                                 <span>Edit Tags</span>
                             </button>
@@ -214,23 +252,23 @@ export default class MySpace extends Component {
                             <form id="profile-form" method="post" onSubmit={handleEditInfo.bind(this)}>
                                 <div className="contact-list">
                                     <span>Age</span>
-                                    <input type="number" step="1" name="age" id="ageInput"/>
+                                    <input type="number" step="1" name="age" id="ageInput" placeholder={userAge}/>
                                 </div>
                                 <div className="contact-list">
                                     <span>Weight</span>
-                                    <input type="number" step="1" name="weight" id="weightInput"/>
+                                    <input type="number" step="1" name="weight" id="weightInput" placeholder={userWeight}/>
                                 </div>
                                 <div className="contact-list">
                                     <span>Height</span>
-                                    <input type="number" step="1" name="height" id="heightInput"/>
+                                    <input type="number" step="1" name="height" id="heightInput" placeholder={userHeight}/>
                                 </div>
                                 <div className="contact-list">
                                     <span>E-mail</span>
-                                    <input type="email" name="email" id="emailInput"/>
+                                    <input type="email" name="email" id="emailInput" placeholder={userEMail}/>
                                 </div>
                                 <div className="contact-list">
                                     <span>Phone Number</span>
-                                    <input type="text" name="phone" id="phoneInput"/>
+                                    <input type="text" name="phone" id="phoneInput" placeholder={userPhone}/>
                                 </div>
                                 <button type="submit" className="submit-btn default-btn">Change Profile</button>
                             </form>
